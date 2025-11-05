@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>راهنما — Sami Bot</title>
+  <style>
+    * {
+        box-sizing:border-box;
+        font-family: Vazir, Tahoma, sans-serif;
+        /* تغییر دوم: غیرفعال کردن انتخاب متن و هایلایت لمس */
+        -webkit-user-select: none; /* Safari */
+        -ms-user-select: none; /* IE 10 and IE 11 */
+        user-select: none; /* Standard syntax */
+        -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile */
+    }
+    body { 
+        height:100%;
+        margin:0;
+        padding:0;
+        background:#d8f9e2;
+        color:#052014
+    }
+    body.dark  {
+        background:#081f0f;
+        color:#e6f7ee
+    }
+
+    .wrap {
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:28px /* حالت دسکتاپ */
+    }
+    .card {
+        width:100%;
+        max-width:900px; margin:0 auto; padding:0 20px;
+        background:#ffffff00;
+        border-radius:18px;padding:22px;
+    }
+    body.dark .card {
+        background:#00000000;
+    }
+
+    .header {
+        display:flex;
+        gap:12px;
+        align-items:center;
+        justify-content:space-between
+    }
+    .title {
+        font-size:20px;
+        font-weight:700
+    }
+    .subtitle {
+        font-size:13px;
+        color:#6fa88c
+    }
+    .logo-spot small {
+        font-size:12px
+    }
+
+    .content {width:100%; display:flex; flex-direction:column; align-items:center; margin-top:18px;}
+    @media(max-width:900px) {
+        .content { 
+          grid-template-columns:1fr
+        }
+    }
+
+    .list {display:flex;flex-direction:column;gap:10px;align-items:center
+    }
+    .item {
+        background:transparent;
+        border-radius:35px;
+        padding:10px 12px;
+        background-color: rgba(253, 253, 253, 0.616);
+        cursor:pointer;
+        transition:0.25s;
+        border:1px solid rgba(0,0,0,0.05)
+    }
+    .item:hover {
+        background-color: rgb(253, 253, 253);
+    }
+    body.dark .item:hover {
+        background-color: rgb(0, 0, 0);
+    }
+    .item:active {
+        padding:10px 15px;
+    }
+    body.dark .item {
+        box-shadow: 0 4px 10px rgba(255, 255, 255, 0.02);
+        background-color: rgba(0, 0, 0, 0.616);
+    }
+
+    .item-head {
+        display:flex;
+        align-items:center;
+        justify-content:space-between
+    }
+    .item-title {
+        font-weight:600
+    }
+
+    .chev {
+        width:36px;
+        height:36px;
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#ff000000
+    }
+    body.dark .chev {
+        background:#00000000
+    }
+
+    .item-body {
+        max-height:0;
+        overflow:hidden;
+        transition:max-height 0.45s, padding 0.25s
+    }
+    .item.open .item-body {
+        padding:14px 8px 8px 8px;
+        max-height:420px
+    }
+
+    .desc {
+        font-size:14px;
+        line-height:1.6;
+        margin-bottom:12px
+    }
+
+    .item-body {
+      display:flex;
+      flex-direction:row;
+      gap:12px;
+      align-items:flex-start;
+      flex-wrap:wrap
+    }
+
+.desc {
+  flex:1;
+  min-width:200px
+}
+
+.gif {
+  width:350px;
+  max-width:100%;
+  border-radius:30px;
+}
+    body.dark .gif {
+        background:#ffffff10;
+        color:#ffffff55;
+        border-color:#ffffff22
+    }
+
+    .preview {
+        position:sticky;
+        top:24px;
+        border-radius:12px;
+        padding:12px;
+        border:1px solid rgba(0,0,0,0.05)
+    }
+    body.dark .preview {
+        border:1px solid rgba(255,255,255,0.06)
+    }
+    .preview h3 {
+        margin:6px 0 10px 0
+    }
+    .preview .note {
+        font-size:13px;
+        color:#6fa88c;
+        margin-bottom:10px
+    }
+
+    .actions {
+        display:flex;
+        gap:10px;
+        margin-top:14px
+    }
+    .btn {
+        width: 80px;
+        height: 40px;
+        margin-right: 10px;
+        background-color: #10b981c5;
+        backdrop-filter: blur(8px);
+        color: rgb(255, 255, 255);
+        border-radius: 300px;
+        border: none;
+        font-family: 'Vazir', sans-serif;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn:hover {
+        background-color: #10b981;
+    }
+    .btn:active {
+        background-color: #10b981;
+        width: 100px;
+    }
+    .muted {
+        color:#6fa88c;
+        font-size:13px
+    }
+    .tag {
+        background:#10b98122;
+        color:#10b981;
+        padding:6px 10px;
+        border-radius:999px;
+        font-weight:700;
+        font-size:13px
+    }
+
+    .chev svg {
+        transition:transform 0.35s
+    }
+    .item.open .chev svg {
+        transform:rotate(90deg)
+    }
+    @media(max-width:700px) {
+      /* تغییر اول: کاهش فاصله در موبایل */
+      .wrap {
+        padding: 1px;
+      }
+      .item-body {
+        flex-direction:column
+      }
+      .gif {
+        width:100%
+      }
+      .item {
+        border-radius:35px;
+        padding:10px 12px;
+        cursor:pointer;
+        transition:0.25s;
+      }
+      .btn:hover {
+        background-color: #10b981c5;
+      }
+      .btn:active {
+        background-color: #10b981c5;
+        width: 90px;
+      }
+      .item:hover {
+        background-color: rgba(253, 253, 253, 0.616);
+      }
+      body.dark .item:hover {
+        background-color: rgba(0, 0, 0, 0.616);
+      }
+    }  
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <main class="card" role="main">
+      <header class="header">
+        <div>
+          <div class="title">بخش راهنما</div>
+          <div class="subtitle">شاید جواب بعضی از سوالاتت اینجا باشه. اینجا بخش راهنما رباط هست که میتونی ببینی:</div>
+        </div>
+        <!-- تغییر سوم: جایگزینی تگ نسخه با دکمه بازگشت -->
+        <div style="display:flex;gap:12px;align-items:center">
+          <button class="btn" id="back-to-site-header">بازگشت</button>
+        </div>
+      </header>
+
+      <section class="content" aria-labelledby="help-list">
+        <nav class="list" id="help-list">
+          <!-- items generated by script for clarity -->
+        </nav>
+
+          <div style="margin-top:12px" id="preview-gifs"></div>
+
+          <!-- دکمه‌های پایین صفحه حذف شدند -->
+          <!-- <div class="actions">
+            <button class="btn" id="to-about">رفتن به درباره سایت</button>
+          </div> -->
+        
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // داده‌های راهنما (عنوان‌ها را براساس درخواست تو ایجاد کردم)
+    const items = [
+      {id:1,title:'چطور برای Sami Bot چیزی بنویسیم؟',placeholder:'برای اینکه بتونی با سامی بات حرف بزنی و ازش استفاده کنی باید داخل کادر پایین ضربه بزن و چیزی بنویسی و بعد دکمه سبز رنگ ارسال که سمت راست هست رو کلیک کنی تا رباط هوش مصنوعی جوابتو بده اگه جواب نداد و خطا داد به پایین تر مراجعه کنید و راهنما را بخوانید.'},
+      {id:2,title:'چطور پیام رباط رو کپی کنیم؟',placeholder:'اگه میخوای نوشته رباط رو کپی کنی باید رو پیام اون یک تک کلیک کنی. هر وقت اعلان کوچیک اونجا نشان داده شد یعنی پیام کپی شده است!'},
+      {id:3,title:'چطور پشتیبانی دهیم؟',placeholder:' برای گزارش مشکلات یا پیشنهادات یا هر دیگر ارتباطات با ما رو سه نقطه بالا سمت چپ بزنید و دکمه پشتیبانی را کلیک کنید. وقتی کلیک کردید به ایمیل برای ارسال پیامتون به ما میروید. اگر سیستمتون از این روش پشتیبانی نکرد به این ایمیل زیر به ما پیامتون رو ارسال کنید. samibot000@gmail.com'},
+      {id:4,title:'چطوری از بروزرسانی ها مطلع شویم؟',placeholder:'اگه رو دکمه ورژن در سه نقطه بالا سمت چپ بزنید میتونید ببینید این نسخه که ازش استفاده میکنید چه قابلیت هایی بهش اضافه شده  و کی عرضه شده. و این هم بهتر است بدانید که به طور خودکار به روز رسانی ها انجام میشود چون روی سرور قرار دارد.'},
+      {id:5,title:'چطور تم برنامه را تغییر بدیم؟',placeholder:'این هوش مصنوعی قابلیت تغییر تم شب و روز را دارد برای استفاده یا تغییر آن روی سه نقطه بالا سمت چپ بزنید و دکمه تغییر تم را بزنید.'},
+      {id:6,title:'چطور برنامه را دانلود کنیم؟',placeholder:'برای دانلود این هوش مصنوعی روی دستگاه خود باید در مرورگر خود به دنبال گزینه Add to Home یا... بگردید. این گزینه ممکن است بسته به مرورگر مورد استفاده شما نام متفاوتی داشته باشد! برای اطلاع از نام گزینه در مرورگر خود میتوانید از چت بات بپرسید.'},
+      {id:7,title:'چطور Sami Bot را افلاین باز کنیم؟',placeholder:'این قابلیت میتونه کاری کنه برنامه باز بشه بدون اتصال به شبکه ، اما نمیتوان با رباط کار کرد. برای این کار ابتدا چت را کامل پاک کنید (در پایین تر راهنما این کار وجود دارد) و بعد در مرورگر خود دکمه دانلود را فشار دهید. باز هم ممکن است این گزینه در مرورگر شما متفاوت و یا حتی وجود نداشته باشد. برای اطلاع بیشتر میتوانید از چت بات بپرسید'},
+      {id:8,title:'چرا رباط قطع ارتباط یا اصبی میشود؟',placeholder:'این رباط طوری آموزش دیده که به بعضی از کار ها مانند حرف های ناسزا و بی احترامی به او و... واکنش غیر معمولی میدهد. حتی ممکن است کار به جایی برسد که دیگر رباط جواب شما را ندهد!'},
+      {id:9,title:'چرا رباط کار نمیکنه؟',placeholder:'این رباط چون از یک سرور آمریکایی استفاده میکند کمی دسترسی به آن سخت است. پس باید از یک VPN پر قدرت با IP های کشور های قوی تر مثل آلمان یا فرانسه یا... استفاده کنید. استفاده از IP های کشور های ناشناخته نمیتواند کمکی برای استفاده از این رباط کند. (البته که داریم روی حالتی کار میکنید که بتوانید بدون فیلتر شکن از رباط استفاده کنید!)'},
+      {id:10,title:'چطور چت را پاک کنیم؟',placeholder:'برای پاک کردن چت به طور راحت میتوانید از گزینه پاک کردن چت ها در سه نقطه بالا سمت چپ استفاده کنید!'}
+    ];
+
+    const list = document.getElementById('help-list');
+    const previewTitle = document.getElementById('preview-title');
+    const previewDesc = document.getElementById('preview-desc');
+    const previewGifs = document.getElementById('preview-gifs');
+
+    // ساخت آیتم‌ها
+    items.forEach(it => {
+      const el = document.createElement('article');
+      el.className = 'item';
+      el.setAttribute('data-id', it.id);
+      el.innerHTML = `
+        <div class="item-head">
+          <div style="display:flex;flex-direction:column;align-items:flex-end">
+            <div class=\"item-title\">${it.title}</div>
+          </div>
+          <div class="chev" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6-6 6z" fill="currentColor"></path>
+            </svg>
+          </div>
+        </div>
+        <div class="item-body">
+          <div class="desc">${it.placeholder}</div>
+          <img class="gif" src="gifts/${it.id}.gif" alt="gif" />
+          ${it.gifs && it.gifs>1 ? `<img class=\"gif\" src=\"gifts/8.2.gif\" alt=\"gif2\" />` : ''}
+
+      `;
+
+      // کلیک برای باز/بسته شدن
+      el.addEventListener('click', (e) => {
+        // اگر قبلا باز بوده، ببند
+        const alreadyOpen = el.classList.contains('open');
+        // بستن همه
+        document.querySelectorAll('.item.open').forEach(x => x.classList.remove('open'));
+        if (!alreadyOpen) {
+          el.classList.add('open');
+          
+          // به‌روزرسانی پیش‌نمایش - این بخش در HTML شما وجود نداشت، اما کد به آن اشاره میکرد
+          if (previewTitle) previewTitle.textContent = it.title;
+          if (previewDesc) previewDesc.textContent = it.placeholder;
+          
+          // GIFها
+          previewGifs.innerHTML = '';
+          const gifsToShow = it.gifs && it.gifs>1 ? it.gifs : 1;
+          for (let i=0;i<gifsToShow;i++){
+            const g = document.createElement('div');
+            g.className = 'gif';
+            g.style.marginTop = i? '8px':'';
+            previewGifs.appendChild(g);
+          }
+        } else {
+          el.classList.remove('open');
+          // بازنشانی پیش‌نمایش
+          if (previewTitle) previewTitle.textContent = 'هیچ موردی انتخاب نشده';
+          if (previewDesc) previewDesc.textContent = 'روی یک بخش کلیک کن تا پیش‌نمایش ببینی.';
+          previewGifs.innerHTML = '';
+        }
+      });
+
+      list.appendChild(el);
+    });
+
+    // تغییر سوم: افزودن رویداد کلیک برای دکمه جدید هدر
+    document.getElementById('back-to-site-header').addEventListener('click', ()=>{
+      // بازگشت به صفحهٔ چت/سایت
+      window.location.href = 'index.html';
+    });
+
+
+    // تم - (اصلاح شد تا اگر دکمه وجود نداشت خطا ندهد)
+    const themeToggle = document.getElementById('themeToggle');
+    function applyTheme(saved){
+      if(saved === 'dark') document.body.classList.add('dark');
+      else document.body.classList.remove('dark');
+      if (themeToggle) { // بررسی وجود دکمه
+        themeToggle.setAttribute('aria-pressed', document.body.classList.contains('dark'));
+      }
+    }
+    const saved = localStorage.getItem('theme');
+    applyTheme(saved);
+    
+    if (themeToggle) { // بررسی وجود دکمه
+      themeToggle.addEventListener('click', ()=>{
+        document.body.classList.toggle('dark');
+        localStorage.setItem('theme', document.body.classList.contains('dark')? 'dark':'light');
+      });
+    }
+
+
+
+
+  </script>
+</body>
+</html>
+

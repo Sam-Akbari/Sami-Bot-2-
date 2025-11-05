@@ -1,0 +1,431 @@
+<!DOCTYPE uid="8a7929d2-fae0-49ec-8df6-0125c50c5506" html="true" path="sami_chat.html" title="Sami Chat - General Purpose Chatbot" >
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="sami chat logo.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <title>Sami Bot</title>
+    <!-- بارگذاری Tailwind CSS -->
+
+    <!-- تنظیمات سفارشی برای استفاده از فونت مناسب و تم رنگی -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'sami-green': '#10b981', // emerald-500
+                        'sami-light': '#f0fdf4', // green-50
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Tahoma', 'Arial', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+</head>
+<body class="bg-sami-light">
+
+    <!-- محفظه اصلی برنامه چت -->
+    <div class="flex flex-col h-screen max-w-lg mx-auto bg-white shadow-xl">
+
+        <!-- هدر (Sami Bot) -->
+    <!-- دکمه سه نقطه -->
+    <button id="menu-button" class="header">⁝</button>
+
+    <!-- منوی کشویی -->
+    <div id="menu" class="menu-buttons">
+        <div class="them-button"><img src="icons/info.png" class="icons">درباره (به زودی)</div>
+        <div id="theme-btn" class="them-button"><img src="icons/dark-mode-alt.png" class="icons">تغییر تم</div>
+        <div id="download-btn" class="them-button"><img src="icons/cloud-download.png" class="icons">دانلود برنامه</div>
+        <div onclick="window.location.href='help.html'" id="download-btn" class="them-button"><img src="icons/newspaper-open.png" class="icons">راهنما</div>
+        <div onclick="window.location.href='mailto:samibot000@gmail.com'" class="them-button"><img src="icons/envelope.png" class="icons">پشتیبانی</div>
+        <div class="them-button"><img src="icons/info.png" class="icons">ورژن 1.2.3</div>
+        <div id="refreshButton" class="them-button"><img src="icons/trash (1).png" class="icons">پاک کردن چت</div>
+    </div>
+
+    <!-- پنجره دانلود -->
+    <div class="logo-container">
+        <img src="icons/2.png" alt="Sami Bot Logo" class="logo">
+    </div>
+    <div id="download-popup" class="download-popup">
+        برای دانلود برنامه روی دکمه <b>"Add to Home"</b> در مرورگر خود کلیک کنید.
+    </div>
+
+
+        <!-- تاریخچه چت -->
+        <main id="chat-history" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <!-- پیام خوش آمدگویی ساده و جدید -->
+            <div class="flex justify-start">
+                <div class="bg-gray-100 text-gray-800 p-3 rounded-xl rounded-tr-none max-w-xs md:max-w-md shadow-sm">
+                    <p class="robot-text">برای شروع صحبت با <b style="color: #00bf7c;"> Sami Bot</b> چیزی بنویسید...</p>
+                </div>
+                <div class="q-answers">
+                    <div id="about-btn" class="q-answers-op"> خودتو معرفی کن.</div>
+                    <div id="write-btn" class="q-answers-op"> میخوام در یک تحقیق کمکم کنی!</div>
+                    <div id="questoin-btn" class="q-answers-op"> چند تا سوال دارم.</div>
+                    <div id="text-btn" class="q-answers-op"> یه متن برام آماده کن!</div>
+                    <div id="practice-btn" class="q-answers-op"> میشه باهام تمرین کنی؟</div>
+                </div>
+            </div>
+            <!-- پیام‌های چت اینجا اضافه می‌شوند -->
+        </main>
+
+        <!-- ناحیه ورودی پیام -->
+        <footer class="p-4 border-t border-gray-200 bg-gray-50 h-20 flex items-center">
+            <div class="flex w-full items-center space-x-2 space-x-reverse">
+                <button id="send-button" 
+                        class="bg-sami-green text-white p-3 rounded-xl font-semibold shadow-md hover:bg-emerald-600 transition duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center w-24">
+                    ارسال
+                </button>
+                <input type="text" id="user-input" placeholder="پیام خود را بنویسید..." 
+                       class="flex-grow p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-sami-green focus:border-sami-green transition duration-150 text-sm"
+                       aria-label="پیام جدید">
+            </div>
+        </footer>
+    </div>
+
+    <script>
+// API Key
+        const apiKey = "AIzaSyDuCcFVX7kTSS_v4xJQwr-5cn8XOpYQqnY"; // API Key
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        
+// المان‌های DOM
+        const chatHistory = document.getElementById('chat-history');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+// برای نگهداری تاریخچه مکالمه
+        let conversationHistory = [];
+        let isLoading = false;
+
+        function createMessageElement(text, isUser) {
+        // container ردیف پیام
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'message-row ' + (isUser ? 'user' : 'bot');
+        
+        // حباب پیام
+            const messageBubble = document.createElement('div');
+            messageBubble.className = 'message-bubble';
+        // متن را امن وارد کنیم (خط‌شکن)
+            messageBubble.innerHTML = text.replace(/\n/g, '<br>');
+        
+            messageContainer.appendChild(messageBubble);
+            chatHistory.appendChild(messageContainer);
+        
+        // اسکرول به پایین
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return messageContainer;
+        }
+        
+
+// برای نمایش حالت لودینگ
+        function showLoading() {
+            isLoading = true;
+            sendButton.disabled = true;
+            userInput.disabled = true;
+
+            const loadingContainer = document.createElement('div');
+            loadingContainer.id = 'loading-message';
+            loadingContainer.className = 'flex justify-start';
+            loadingContainer.innerHTML = `
+                <div class="loading">
+                    <span>در حال پردازش</span>
+                    <span class="loading-dot text-lg">.</span>
+                    <span class="loading-dot text-lg">.</span>
+                    <span class="loading-dot text-lg">.</span>
+                </div>
+            `;
+            chatHistory.appendChild(loadingContainer);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+// برای حذف حالت لودینگ
+        function hideLoading() {
+            isLoading = false;
+            sendButton.disabled = false;
+            userInput.disabled = false;
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.remove();
+            }
+        }
+
+// تابع اصلی برای ارسال پیام و دریافت پاسخ
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (!userText || isLoading) return;
+
+        // 1. نمایش پیام کاربر
+            createMessageElement(userText, true);
+            userInput.value = '';
+
+        // 2. به‌روزرسانی تاریخچه مکالمه
+            conversationHistory.push({ role: "user", parts: [{ text: userText }] });
+
+        // 3. نمایش حالت لودینگ
+            showLoading();
+
+        // بخش یادگیری ماشین و حافظه
+            try {
+                const systemPrompt = "You are Sami Bot, a helpful and friendly general-purpose AI assistant powered by Google's Gemini AI.You have to speak English if user use it or Pesian if user use it and another language you can speak them. You were developed by Samyar Akbari. Only mention your full name (Sami Bot) or the name of your developer (Samyar Akbari).You made in Iran.You are in versian 1.2.3. Just and Just if user ask about menu you know them: User can go to درباره and راهنما and تغییر تم and دانلود برنامه andپاک کردن چت and پشتیبانی and from menu button at top right of screen. Talk angriness with user if user ask about swearing or tell bad about you or developer Else you are very friendly and helpful.";
+                
+                const payload = {
+                    contents: conversationHistory,
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                };
+
+           
+                const maxRetries = 5;
+                let attempt = 0;
+                let response;
+
+                while (attempt < maxRetries) {
+                    try {
+                        response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            break; 
+                        } else if (response.status === 429 || response.status >= 500) {
+              
+                            if (attempt === maxRetries - 1) throw new Error(`API Error ${response.status}: Max retries reached.`);
+                            
+                            const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                            attempt++;
+                        } else {
+                      
+                            throw new Error(`API Error ${response.status}: ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        if (attempt === maxRetries - 1 || !(error.message.includes('API Error 429') || error.message.includes('API Error 5'))) {
+                             throw error;
+                        }
+                    }
+                }
+                
+                const result = await response.json();
+                const botText = result.candidates?.[0]?.content?.parts?.[0]?.text || "ERORR: Sami could not answer! سامی نتوانست پاسخ دهد!";
+
+            // 4. حذف حالت بارگذاری و نمایش پاسخ بات
+                hideLoading();
+                createMessageElement(botText, false);
+
+            // 5. به‌روزرسانی تاریخچه مکالمه با پاسخ مدل
+                conversationHistory.push({ role: "model", parts: [{ text: botText }] });
+
+            } catch (error) {
+                console.error("Error communicating with Gemini API:", error);
+                
+            // 4. حذف حالت بارگذاری و نمایش پیام خطا
+                hideLoading();
+                createMessageElement("این چت بات هوش مصنوعی از یک سرور خارجی استفاده میکند پس لطفا از VPN استفاده کنید یا اینترنت را بررسی کنید!", false);
+            }
+        }
+
+
+        sendButton.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isLoading) {
+                sendMessage();
+            }
+        });
+        
+// اطمینان از اینکه دکمه ارسال در ابتدا فعال باشد
+        window.onload = () => {
+             hideLoading();
+        };
+
+
+
+            
+            
+        // غیرفعال کردن انتخاب متن در کل صفحه
+        window.addEventListener('load', () => {
+        document.body.classList.add('no-select');
+        });
+
+
+        // کپی کردن با کلیک
+        function enableBotMessageCopy() {
+        const botMessages = document.querySelectorAll('.bot .message-bubble');
+        
+        
+        botMessages.forEach(msg => {
+        msg.addEventListener('click', async () => {
+        try {
+        const text = msg.innerText;
+        await navigator.clipboard.writeText(text);
+        
+        
+        // نمایش کپی شدن
+        const copiedNote = document.createElement('div');
+        copiedNote.innerText = 'کپی شد';
+        copiedNote.style.position = 'absolute';
+        copiedNote.style.background = 'rgba(0,0,0,0.75)';
+        copiedNote.style.color = 'white';
+        copiedNote.style.padding = '6px 12px';
+        copiedNote.style.borderRadius = '12px';
+        copiedNote.style.fontSize = '13px';
+        copiedNote.style.top = msg.getBoundingClientRect().top + window.scrollY - 30 + 'px';
+        copiedNote.style.right = '50%';
+        copiedNote.style.transform = 'translateX(50%)';
+        copiedNote.style.transition = 'opacity 0.4s';
+        copiedNote.style.opacity = '1';
+        document.body.appendChild(copiedNote);
+        
+        
+        setTimeout(() => {
+        copiedNote.style.opacity = '0';
+        setTimeout(() => copiedNote.remove(), 400);
+        }, 800);
+        } catch (err) {
+        console.error('خطا در کپی پیام:', err);
+        }
+        });
+        });
+        }
+
+
+        // هر بار که پیام جدیدی اضافه می‌شود، این تابع را صدا کن
+        const observer = new MutationObserver(() => enableBotMessageCopy());
+        observer.observe(document.getElementById('chat-history'), { childList: true, subtree: true });
+
+        // حذف افکت آبی روی دکمه‌ها
+        const style = document.createElement('style');
+        style.textContent = `
+        * {
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        }
+        `;
+        document.head.appendChild(style);
+            
+        function createMessageElement(text, isUser) {
+          const messageContainer = document.createElement('div');
+          messageContainer.className = 'message-row ' + (isUser ? 'user' : 'bot');
+        
+          const messageBubble = document.createElement('div');
+          messageBubble.className = 'message-bubble';
+        
+         
+          if (!isUser) {
+            const html = marked.parse(text);
+            messageBubble.innerHTML = html;
+          } else {
+            messageBubble.innerHTML = text.replace(/\n/g, '<br>');
+          }
+      
+          messageContainer.appendChild(messageBubble);
+          chatHistory.appendChild(messageContainer);
+          chatHistory.scrollTop = chatHistory.scrollHeight;
+          return messageContainer;
+        }
+            
+
+
+
+        const menuButton = document.getElementById('menu-button');
+        const menu = document.getElementById('menu');
+        const themeBtn = document.getElementById('theme-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const downloadPopup = document.getElementById('download-popup');
+        const body = document.body;
+
+        // نمایش و مخفی کردن منو
+        menuButton.addEventListener('click', () => {
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        });
+
+        //  تغییر تم
+        themeBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            body.classList.toggle('dark-mode');
+            localStorage.setItem("theme", body.classList.contains('dark-mode') ? "dark" : "light");
+        });
+
+        // بررسی تم ذخیره‌شده و اعمال آن هنگام بارگذاری صفحه
+        window.addEventListener("DOMContentLoaded", () => {
+          const savedTheme = localStorage.getItem("theme");
+          if (savedTheme === "dark") {
+            document.body.classList.add("dark-mode");
+          }
+        });
+
+        // گزینه دانلود برنامه 
+        downloadBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            downloadPopup.classList.add('show');
+            setTimeout(() => downloadPopup.classList.remove('show'), 4000); // بعد 4 ثانیه مخفی شود
+        });
+
+        // مخفی کردن منو
+        document.addEventListener('click', (e) => {
+            if (!menu.contains(e.target) && e.target !== menuButton) {
+                menu.style.display = 'none';
+            }
+        });
+
+        const refreshBtn = document.getElementById("refreshButton");
+            
+        // تعریف تابعی که صفحه رو رفرش میکنه
+        function refreshPage() {
+            window.location.reload();
+        }
+        
+        // وقتی روی دکمه کلیک میشه تابع اجرا شود
+        refreshBtn.addEventListener("click", refreshPage);
+        
+        const aboutBtn = document.getElementById('about-btn');
+        const writeBtn = document.getElementById('write-btn');
+        const questoinBtn = document.getElementById('questoin-btn');
+        const textBtn = document.getElementById('text-btn');
+        const practiceBtn = document.getElementById('practice-btn');
+    
+        aboutBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            // ارسال درخواست به بات
+            userInput.value = "خودتو کامل معرفی کن کی هستی.";
+            sendMessage();
+        });
+
+        writeBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            // ارسال درخواست به بات
+            userInput.value = "میخوام در یک تحقیق کمکم کنی!";
+            sendMessage();
+        });
+        questoinBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            // ارسال درخواست به بات
+            userInput.value = "چند تا سوال دارم.";
+            sendMessage();
+        });
+
+        textBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            // ارسال درخواست به بات
+            userInput.value = "میخوام برام یه متن آماده کنی!";
+            sendMessage();
+        });
+
+        practiceBtn.addEventListener('click', () => {
+            menu.style.display = 'none';
+            // ارسال درخواست به بات
+            userInput.value = "میشه باهام تمرین کنی؟";
+            sendMessage();
+        });
+        // V 1.2.3
+    </script>
+</body>
+</html>
